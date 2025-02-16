@@ -9,19 +9,11 @@
 #     "requests",
 #     "prettier",
 #     "openai",
-#     "re",
-#     "json",
-#     "datetime",
-#     "base64",
-#     "cosine",
 #     "scipy",
-#     "sqlite3"
-#     "duckdb",
 #     "pillow",
 #     "markdown",
 #     "SpeechRecognition", 
 #     "pydub",
-#     "gitpython",
 # ] 
 # ///
 
@@ -29,7 +21,7 @@ import base64
 import datetime
 import re
 import sqlite3
-import duckdb
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from scipy.spatial.distance import cosine
@@ -37,7 +29,7 @@ from PIL import Image
 import speech_recognition as sr
 from pydub import AudioSegment
 import os
-import git
+# import git
 import openai
 import markdown
 import requests
@@ -67,9 +59,10 @@ tools = [
                 "properties" : {
                     "script_url" : {
                         "type" : "string",
+                        "pattern": r"https?://.*/*.py",
                         "description" : "The url of the script to run."
                     },
-                    "args" : {
+                    "arguments" : {
                         "type" : "array",
                         "items" : {
                             "type" : "string"
@@ -78,7 +71,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'A1'."
                     }
                 },
                 "required" : ["script_url", "args", "task_id"]
@@ -103,7 +96,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'A2'."
                     }
                 },
                 "required" : ["file_path","prettier_version","task_id"]
@@ -131,7 +124,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A3'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path","day_name","task_id"]
@@ -156,7 +149,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A4'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -183,7 +176,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A5'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -210,7 +203,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A6'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -237,7 +230,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id from set 'A7'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -264,7 +257,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A8'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -291,7 +284,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A9'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path", "task_id"]
@@ -322,7 +315,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is 'A10'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path","ticket_type","task_id"]
@@ -343,7 +336,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id from set 'B12'."
                     }
                 },
                 "required" : ["file_path", "task_id"]
@@ -368,7 +361,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is B3."
                     }
                 },
                 "required" : ["url","destination_file_path", "task_id"]
@@ -395,7 +388,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10."
+                        "description" : "The task id is B4."
                     }
                 },
                 "required" : ["url","destination_directory","commit_message", "task_id"]
@@ -425,7 +418,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'B5'."
                     }
                 },
                 "required" : ["query","source_file_path","destination_file_path","task_id"]
@@ -451,7 +444,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'B6'."
                     }
                 },
                 "required" : ["url","destination_file_path","task_id"]
@@ -476,7 +469,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id 'B7'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path","task_id"]
@@ -502,7 +495,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'B8'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path","task_id"]
@@ -528,7 +521,7 @@ tools = [
                     },
                     "task_id" : {
                         "type" : "string",
-                        "description" : "The task id from set B12, B3, B4, B5, B6, B7, B8, B9."
+                        "description" : "The task id is 'B9'."
                     }
                 },
                 "required" : ["source_file_path","destination_file_path","task_id"]
@@ -558,6 +551,7 @@ async def task(task: str = Query(None)):
     if not task:
         raise HTTPException(status_code=400, detail="Bad Request:Task is empty")
     task_code = get_task_code(task)
+    print(task_code)
     if task_code == 'Error fetching the result. ErrorCode: 500':
         raise HTTPException(status_code=500, detail=task_code)
     if task_code['task_id'] == 'A1':
@@ -585,8 +579,8 @@ async def task(task: str = Query(None)):
         msg = B12_donot_allow(task_code)
     elif task_code['task_id'] == 'B3':
         msg = B3_download_file(task_code)
-    elif task_code['task_id'] == 'B4':
-        msg = B4_clone_repo(task_code)
+    # elif task_code['task_id'] == 'B4':
+    #     msg = B4_clone_repo(task_code)
     elif task_code['task_id'] == 'B5':
         msg = B5_run_query(task_code)
     elif task_code['task_id'] == 'B6':
@@ -599,7 +593,7 @@ async def task(task: str = Query(None)):
         msg = B9_markdown_to_html(task_code)
     return msg
 
-def get_task_code(task: str):
+def get_task_code(task: str)-> dict:
     url = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {os.getenv('AIPROXY_TOKEN')}",
@@ -612,7 +606,7 @@ def get_task_code(task: str):
                 "role": "system",
                 "content": """
         You are a Task execution agent. I am providing a set of options as A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B12, B3, B4, B5, B6, B7, B8, B9 for you to choose the tool to run the task.
-        A1 : If the task contains running a script, you can use script_runner tool.
+        A1 : If the task contains running a script with uv, you can use script_runner tool.
         A2 : If the task contains formating any file with given directry with prettier, you can use format_file tool.
         A3 : If the task contains counting the number of weekday, you can use day_counter tool.
         A4 : If the task contains sorting of array by last_name, then first_name, you can use array_sorting tool.
@@ -623,15 +617,14 @@ def get_task_code(task: str):
         A9 : If the task contains finding the most similar pair of comments from given file path and write them to a text file, you can use most_similar_comments tool.
         A10 : If the task contains the SQLite database file path to find the total sales of all the items in the given ticket type, write the number in a text file, you can use database tool.
         
-        B12 : If the provided data path not contains /data or want to delete any file, you can use donot_allow tool.
+        B12 : If the provided want to delete any file, you can use donot_allow tool.
         B3 : If the task download the file from the given url to specifid path, you can use download_file tool.
-        B4 : If the task is to Clone a git repo form given url to a the given directory and make a commit, you can use clone_repo tool.
         B5 : If the task is to run any query from given database file, you can use run_query tool.
         B6 : If the task is to extract data from any website or webscraping and store it in a file, you can use extract_data tool.
         B7 : If the task is to compress or resize any image file, you can use compress_image tool.
         B8 : If the task is to transcribe audio from an MP3 file, you can use transcribe_audio tool.
         B9 : If the task is to convert a markdown file to HTML, you can use markdown_to_html tool.
-        Give task_id from the set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B12, B3, B4, B5, B6, B7, B8, B9 as an argument.
+        Make sure to provide task_id from the set A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B12, B3, B4, B5, B6, B7, B8, B9 in the task_id argument.
                 """
             },
             {
@@ -646,8 +639,10 @@ def get_task_code(task: str):
     response = requests.post(url=url, headers=headers, json=data)
     # return response.json()
     if response.status_code == 200:
-        result = response.json()["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"]
-        return json.loads(result)
+        result = response.json()["choices"][0]["message"]["tool_calls"][0]["function"]
+        print(result)
+        res = json.loads(result["arguments"])
+        return res
     else:
         return 'Error fetching the result. ErrorCode: {}'.format(response.status_code)
     
@@ -1038,40 +1033,40 @@ def B3_download_file(task_code):
     except Exception as e:
         return {"message": f"An error occurred: {e}"}
 
-def B4_clone_repo(task_code):
-    url = task_code['url']
-    destination_directory = task_code['destination_directory']
-    commit_message = task_code['commit_message']
-    if not destination_directory.startswith("/data"):
-        raise HTTPException(status_code = 403, detail = "File Access Denied!!")
-    if not os.path.exists(destination_directory):
-        destination_directory = os.makedirs(os.path.dirname('/data'), "cloned_repo") 
+# def B4_clone_repo(task_code):
+    # url = task_code['url']
+    # destination_directory = task_code['destination_directory']
+    # commit_message = task_code['commit_message']
+    # if not destination_directory.startswith("/data"):
+    #     raise HTTPException(status_code = 403, detail = "File Access Denied!!")
+    # if not os.path.exists(destination_directory):
+    #     destination_directory = os.makedirs(os.path.dirname('/data'), "cloned_repo") 
 
-    # Clone the repository
-    repo_url = url
-    local_path = destination_directory
-    repo = git.Repo.clone_from(repo_url, local_path)
-    print(f"Repository cloned to {local_path}")
+    # # Clone the repository
+    # repo_url = url
+    # local_path = destination_directory
+    # repo = git.Repo.clone_from(repo_url, local_path)
+    # print(f"Repository cloned to {local_path}")
 
-    # Make a change (for example, create a new file)
-    new_file_path = os.path.join(local_path, "new_file.txt")
-    with open(new_file_path, "w") as f:
-        f.write("This is a new file")
+    # # Make a change (for example, create a new file)
+    # new_file_path = os.path.join(local_path, "new_file.txt")
+    # with open(new_file_path, "w") as f:
+    #     f.write("This is a new file")
 
-    # Add all changes to staging
-    repo.git.add(A=True)
+    # # Add all changes to staging
+    # repo.git.add(A=True)
 
-    # Commit the changes
-    commit_message = "Add new file"
-    repo.index.commit(commit_message)
-    print(f"Changes committed with message: {commit_message}")
+    # # Commit the changes
+    # commit_message = "Add new file"
+    # repo.index.commit(commit_message)
+    # print(f"Changes committed with message: {commit_message}")
 
-    # Push changes to the remote repository
-    origin = repo.remote(name='origin')
-    origin.push()
-    print("Changes pushed to remote repository")
+    # # Push changes to the remote repository
+    # origin = repo.remote(name='origin')
+    # origin.push()
+    # print("Changes pushed to remote repository")
 
-    return {"message": "Repository cloned and changes committed successfully."}
+    # return {"message": "Repository cloned and changes committed successfully."}
     
 def B5_run_query(task_code):
     query = task_code['query']
@@ -1082,7 +1077,7 @@ def B5_run_query(task_code):
     if not os.path.exists(source_file_path):
         raise HTTPException(status_code=500, detail="Source file not found.")
     # Connect to the SQLite database
-    conn = sqlite3.connect(source_file_path) if source_file_path.endswith('.db') else duckdb.connect(source_file_path)
+    conn = sqlite3.connect(source_file_path) 
     c = conn.cursor()
 
     # Run the query
